@@ -1,0 +1,191 @@
+
+<!-- Header -->
+<div class="grid-block">
+	<div class="grid-content medium-6 small-12">
+		<h1>Task Manager</h1>
+	</div>
+	<div class="grid-content medium-6 small-12">
+		<a zf-open="newTaskForm" class="large success button float-right"><img zf-iconic="" data-src="assets/iconic/action.svg" class="iconic-sm">New Task</a>
+	</div>
+</div>
+<!-- /Header -->
+
+<hr />
+
+<!-- Filtering bar -->
+<div class="grid-block">
+	
+	<div class="grid-content medium-6 small-12">
+
+			<label class="float-left task-search"><span class="inline-label"><span class="form-label">Search:</span><input type="text" ng-model="query"></span></label>
+			
+			<a class="grey button float-left" ng-click="showtag.tags = '';query = ''">Show All Tags</a>
+
+			<div ng-show="showstatus == 'complete'">
+			<a class="grey button float-left" ng-click="showstatus = 'incomplete'">Hide Completed Tasks</a>
+			</div>
+			<div ng-show="showstatus == 'incomplete'">
+			<a class="grey button float-left" ng-click="showstatus = 'complete'">Show Completed Tasks</a>
+			</div>
+
+	</div>
+
+	<div class="grid-content medium-6 small-12">
+		<a href="#" zf-toggle="browseByTag" class="grey button float-right browsebytag">Browse by Tag</a>
+	</div>
+
+	</div>
+</div>
+<!-- /Filtering bar -->
+
+<!-- Tasks -->
+<div class="grid-block">
+
+	<!-- Output task cards -->
+	<div class="fadeIn fadeOut grid-content large-3 medium-6 small-12" ng-repeat="task in tasks | filter:showstatus | filter:showtag | filter:query track by $index">
+
+		<div class="task-card" ng-class="[task.color, task.status]">
+
+			<div class="card-divider">
+			<div class="grid-block">
+
+				<!-- Task tags -->
+				<div class="grid-content small-9 tag-list">
+					<a class="small button" ng-repeat="tag in task.tags track by $index" ng-click="showtag.tags = tag">{{tag}}</a>
+				</div>
+
+				<!-- Task Action Sheet -->
+				<div class="grid-content small-3">
+					<zf-action-sheet class="float-right">
+					<zf-as-button><img zf-iconic="" data-src="assets/iconic/cog.svg" class="iconic-md actions-cog"></zf-as-button>
+					<zf-as-content position="bottom">
+					<zf-accordion>
+
+					<zf-accordion-item title="Set Status / Delete">
+
+						<div ng-show="task.status == 'incomplete'">
+						<a class="white button" ng-click="SetTaskStatus( task.id, 'complete' )">Mark as Complete &nbsp; <img zf-iconic="" data-src="assets/iconic/thumb.svg" class="iconic-sm iconic-color-success"></a>
+						</div>
+
+						<div ng-show="task.status == 'complete'">
+						<a class="white button" ng-click="SetTaskStatus( task.id, 'incomplete' )">Mark as Incomplete &nbsp; <img zf-iconic="" data-src="assets/iconic/ban.svg" class="iconic-sm iconic-color-primary"></a>
+						</div>
+
+						<a class="white button" ng-click="DeleteTask( task.id )">Delete Task
+					 &nbsp; <img zf-iconic="" data-src="assets/iconic/circle-x.svg" class="iconic-sm iconic-color-warning"></a>
+
+					</zf-accordion-item>
+
+					<zf-accordion-item title="Set Task Color">
+					<a class="white button" ng-click="SetTaskColor( task.id, '' )">White</a>
+					<a class="primary button" ng-click="SetTaskColor( task.id, 'primary' )">Light Blue</a>
+					<a class="secondary button" ng-click="SetTaskColor( task.id, 'secondary' )">Dark Blue</a>
+					<a class="success button" ng-click="SetTaskColor( task.id, 'success' )">Green</a>
+					<a class="alert button" ng-click="SetTaskColor( task.id, 'alert' )">Purple</a>
+					<a class="warning button" ng-click="SetTaskColor( task.id, 'warning' )">Red</a>
+					</zf-accordion-item>
+
+					</zf-accordion>
+					</zf-as-content>
+					</zf-action-sheet>
+				</div>
+
+				<zf-popup id="set_color_{{task.id}}" class="padding">
+				<div class="block-list">
+				<ul>
+				<li><a ng-click="SetTaskColor( task.id, '' )">White</a></li>
+				<li><a ng-click="SetTaskColor( task.id, 'primary' )">Light Blue</a></li>
+				<li><a ng-click="SetTaskColor( task.id, 'secondary' )">Dark Blue</a></li>
+				<li><a ng-click="SetTaskColor( task.id, 'success' )">Green</a></li>
+				<li><a ng-click="SetTaskColor( task.id, 'alert' )">Purple</a></li>
+				<li><a ng-click="SetTaskColor( task.id, 'warning' )">Red</a></li>
+				</ul>
+				</div>
+				</zf-popup>
+
+			</div>
+			</div>
+
+			<div class="card-section">
+
+				<div ng-show="editMode == false">
+					<h4>{{task.title}}</h4>
+
+					<div ng-show="task.body.length < 300">
+						<p>{{task.body}}</p>
+					</div>
+
+					<div ng-show="task.body.length > 300">
+
+						<div ng-hide="expanded == true">
+						<p>{{task.body | limitTo:150}}&hellip; <a ng-click="expanded = true">Show All &rarr;</a></p>
+						</div>
+
+						<div ng-show="expanded == true">
+						<p>{{task.body}} <a ng-click="expanded = false">&larr; Show Less</a></p>
+						</div>
+
+					</div>
+
+	      	<div class="clearfix"></div>
+				</div>
+
+				<!-- Task editing form -->
+				<div ng-show="editMode == true">
+					<form name="editTask" class="taskForm">
+					<label>Title:<input ng-model="task.title" type="text"></label>
+					<label>Description:<textarea ng-model="task.body" placeholder="Task Description"></textarea></label>
+					<label>Tags (comma separated):<input ng-model="task.tags" type="text" ng-change="UpdateTags(task.id)"></label>
+					</form>
+					<div class="clearfix"></div>
+
+		    </div>
+
+      	<div class="switch float-right">
+				<input type="checkbox" id="edit_toggle_{{task.id}}" ng-model="editMode" ng-change="editMode || UpdateTasks()">
+				<label for="edit_toggle_{{task.id}}"></label>
+				</div>
+				<div class="clearfix"></div>
+
+
+			</div>
+
+		</div>
+
+	</div>
+
+</div>
+<!-- /Tasks -->
+
+
+
+<!-- OFF SCREEN ELEMENTS -->
+
+<!-- Tag browsing panel -->
+<div zf-panel="" zf-swipe-close="right" id="browseByTag" position="right">
+<a zf-close="" class="close-button" >×</a>
+
+<a class="small button" style="margin-right: 0.5em;" ng-repeat="tag in allTags track by $index" ng-click="showtag.tags = tag">{{tag}}</a>
+
+</div>
+<!-- /Tag browsing panel -->
+
+<!-- New task form -->
+<zf-modal id="newTaskForm" overlay="true">
+	<div class="grid-block vertical">
+		<div class="dark title-bar">
+			<span class="title left">Add New Task</span>
+			<span class="right" style="cursor:pointer;"><a zf-close="">Cancel <img zf-iconic="" data-src="assets/iconic/circle-x.svg" class="iconic-sm"></a></span>
+		</div>
+
+		<div class="grid-content">
+			<form name="newTask" class="taskForm">
+				<input ng-model="newTask.taskTitle" type="text" placeholder="Task Title">
+				<textarea ng-model="newTask.taskBody" placeholder="Task Description"></textarea>
+				<input ng-model="newTask.tags" type="text" placeholder="Tags (comma separated)">
+				<p><a class="large button float-right success" zf-close="" ng-click="CreateTask( newTask.taskTitle, newTask.taskBody, newTask.tags ); newTask = ''"><img zf-iconic="" data-src="assets/iconic/circle-check.svg" class="iconic-sm">Add New Task</a></p>
+			</form>
+		</div>
+	</div>
+</zf-modal>
+<!-- /New task form -->
